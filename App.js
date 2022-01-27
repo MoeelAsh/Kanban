@@ -10,6 +10,7 @@ import InfoScreen from './screens/InfoScreen';
 import {StatusBar} from 'react-native';
 import COLORS from './consts/colors';
 
+
 const App = () => {
   return (
     <NavigationContainer>
@@ -18,6 +19,7 @@ const App = () => {
         <Stack.Screen name="Home" component={HomeScreen} />
         <Stack.Screen name="Details" component={DetailsScreen} />
         <Stack.Screen name="Info" component={InfoScreen} />
+        
       </Stack.Navigator>
     </NavigationContainer>
   );
