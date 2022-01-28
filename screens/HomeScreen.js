@@ -40,6 +40,7 @@ const HomeScreen = ({ navigation }) => {
 
   const [dataPlants, setDataPlants] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
+  const [flag, setFlag] = useState(0);
 
 
   const categories = ['ALL FLOWERS', 'FAVORITES', <Icon name='location-pin' size={24} />];
@@ -171,6 +172,7 @@ const HomeScreen = ({ navigation }) => {
     };
 
     launchCamera(options, response => {
+      setimageUri("")
       console.log(response);
       // console.log('Response = ', response.assets[0].base64);
       if (response.didCancel) {
@@ -186,7 +188,7 @@ const HomeScreen = ({ navigation }) => {
         const con = response.assets[0].base64
         // const { uri } = response;
         const source = { uri: "data:image/jpeg;base64," + con }
-
+        setFlag(0);
         setimageUri(source);
       }
     });
@@ -201,6 +203,7 @@ const HomeScreen = ({ navigation }) => {
     };
 
     launchImageLibrary(options, response => {
+      setimageUri("")
       console.log('Response = ', response);
       if (response.didCancel) {
         console.log('User cancelled image picker');
@@ -217,6 +220,7 @@ const HomeScreen = ({ navigation }) => {
             console.log(res);
             const source = { uri: "data:image/jpeg;base64," + res }
             setimageUri(source)
+            setFlag(1);
           });
         // const { uri } = response;
       }
@@ -329,7 +333,7 @@ const HomeScreen = ({ navigation }) => {
               </View>
               <Text style={{fontSize:16,color:"black"}}>{result1}</Text>
               <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%', justifyContent: 'space-evenly', }}>
-                <Icon style={{ height: 28 }} name='dangerous' size={28} onPress={() => { setModalVisible(false); setResult1("") }} />
+                <Icon style={{ height: 28 }} name='dangerous' size={28} onPress={() => { setModalVisible(false); setResult1("");setResult(1) }} />
 
                 <TouchableOpacity onPress={() => openDetails(result1)}>
                   <View style={{ backgroundColor: 'green', margin: 0, justifyContent: 'center', alignItems: 'center', width: width, height: 40 }}>
@@ -338,7 +342,7 @@ const HomeScreen = ({ navigation }) => {
                     </Text>
                   </View>
                 </TouchableOpacity>
-                <Icon style={{ height: 28 }} name='replay' size={28} onPress={() => { launchImageLibrary(); setResult1("") }} />
+                <Icon style={{ height: 28 }} name='replay' size={28} onPress={() => { flag?launchImageLibrary():launchCamera(); setResult("1");setimageUri("") }} />
               </View>
             </>
             :
@@ -354,7 +358,7 @@ const HomeScreen = ({ navigation }) => {
                   }} />
               </View>
               <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%', justifyContent: 'space-evenly', }}>
-                <Icon style={{ height: 28 }} name='dangerous' size={28} onPress={() => { setModalVisible(false); setResult(1) }} />
+                <Icon style={{ height: 28 }} name='dangerous' size={28} onPress={() => { setModalVisible(false); setResult(1);setResult1("") }} />
 
                 {
                   result ?
@@ -377,7 +381,7 @@ const HomeScreen = ({ navigation }) => {
                     </Image>
 
                 }
-                <Icon style={{ height: 28 }} name='replay' size={28} onPress={() => { openCamara(); setResult(1) }} />
+                <Icon style={{ height: 28 }} name='replay' size={28} onPress={() => { flag?launchImageLibrary():launchCamera(); setResult(1) }} />
               </View>
             </>
           }
