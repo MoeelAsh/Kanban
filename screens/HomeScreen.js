@@ -25,6 +25,7 @@ import plants from '../consts/plants';
 const width = Dimensions.get('window').width / 2 - 30;
 
 const RNFS = require("react-native-fs");
+const ip="http://40.86.119.115:8080"
 
 
 const HomeScreen = ({ navigation }) => {
@@ -47,9 +48,11 @@ const HomeScreen = ({ navigation }) => {
   const [toggle, settoggle] = useState(0);
 
   useEffect(() => {
-    if (imageUri)
+    if (imageUri) {
       setModalVisible(true);
-    console.log("setting up and opening modal")
+      console.log("setting up and opening modal", imageUri.uri.split(",")[1])
+    }
+
   }, [imageUri])
 
   useEffect(() => {
@@ -62,7 +65,7 @@ const HomeScreen = ({ navigation }) => {
 
   useEffect(() => {
     const getFlowers = async () => {
-      await fetch("http://10.0.2.2:3000/all_flowers")
+      await fetch(`http://40.86.119.115:8080/all_flowers`)
         .then(res => res.json())
         .then(res => setDataPlants(res["flowers"]))
         .catch(error => console.log(error))
@@ -183,6 +186,7 @@ const HomeScreen = ({ navigation }) => {
         const con = response.assets[0].base64
         // const { uri } = response;
         const source = { uri: "data:image/jpeg;base64," + con }
+
         setimageUri(source);
       }
     });
@@ -206,35 +210,71 @@ const HomeScreen = ({ navigation }) => {
         console.log('User tapped custom button: ', response.customButton);
         alert(response.customButton);
       } else {
-        const con = response.assets[0].base64
+        var con = response.assets[0].uri;
+
+        RNFS.readFile(con, 'base64')
+          .then(res => {
+            console.log(res);
+            const source = { uri: "data:image/jpeg;base64," + res }
+            setimageUri(source)
+          });
         // const { uri } = response;
-        const source = { uri: "data:image/jpeg;base64," + con }
-        setimageUri(source)
       }
     });
   };
 
   const sendReq = () => {
     setResult(0)
-    fetch("/your_route", {
+    fetch(`${ip}/flower_image`, {
       method: "POST",
-      body: {
-        data: JSON.stringify(imageUri.uri)
-      }
+      headers: {
+        'Content-Type': 'application/json; charset=utf-8',
+        'Accept': 'application/json'
+      },
+
+      body: JSON.stringify({
+        img_uri: imageUri.uri.split(',')[1]
+      })
+
     })
       .then((res) =>
         res.json()
       )
       .then((res) => {
         if (res.status) {
-          setResult1(1)
+          const arr = res.flower_data;
+          const obj = {}
+          console.log(res);
+          console.log(arr);
+          arr.forEach((e) => {
+            if (obj[e]) {
+              obj[e] += 1;
+            }
+            else {
+              obj[e] = 1
+            }
+          })
+          console.log("holaaa", obj);
+          const keys = Object.keys(obj)
+          var greater = ""
+          var temp = 1
+          keys.forEach((e) => {
+            if (obj[e] >= temp) {
+              temp = obj[e]
+              greater = e
+            }
+          })
+          console.log("94%", greater);
+          setResult1(greater.toUpperCase());
         }
         else {
           console.log("err");
         }
       })
-      .catch((err)=>{
+      .catch((err) => {
         setModalVisible(0);
+        console.log(err);
+
         SweetAlert.showAlertWithOptions({
           title: "Can't connect to server!",
           subTitle: 'Something went wrong',
@@ -246,8 +286,28 @@ const HomeScreen = ({ navigation }) => {
           cancellable: true
         },
           callback => console.log('callback'));
+        
       })
-      
+
+  }
+
+  const openDetails=(prop)=>{
+    setModalVisible(false)
+    setResult(1);
+    setResult1("")
+    var dat=prop
+    if(prop.toLowerCase()==="oxeye daisy"){
+      dat="daisy"      
+    }
+    const data=dataPlants.filter(flower=>flower.flower_name.toLowerCase()===dat.toLowerCase())
+    console.log(data);
+    if(data.length>0){
+      navigation.navigate("Details",data[0])
+    }
+    else{
+      console.log("smol");
+    }
+
   }
 
   const modl = () => {
@@ -257,18 +317,28 @@ const HomeScreen = ({ navigation }) => {
         <View style={{ height: '50%', marginTop: "20%", borderWidth: 1, borderColor: 'gray', borderRadius: 30, alignItems: 'center', justifyContent: 'space-around', backgroundColor: 'white', width: '90%' }}>
           {result1 ?
             <>
-              <Text>hola</Text>
-              <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%', justifyContent: 'space-evenly', }}>
-                <Icon style={{ height: 28 }} name='dangerous' size={28} onPress={() => { setModalVisible(!modalVisible); setResult(1) }} />
+              <View style={{ height: "75%", width: '90%', justifyContent: 'flex-end' }}>
+                <Image
+                  source={imageUri ? imageUri : 0}
+                  // source={{ uri: "file:///data/user/0/com.helloplant/cache/rn_image_picker_lib_temp_851c4a90-4222-4889-a792-989a17aa40cb.jpg" }}
+                  style={{
+                    height: "95%",
+                    width: "100%",
 
-                <TouchableOpacity onPress={() => setResult(1)}>
+                  }} />
+              </View>
+              <Text style={{fontSize:16,color:"black"}}>{result1}</Text>
+              <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%', justifyContent: 'space-evenly', }}>
+                <Icon style={{ height: 28 }} name='dangerous' size={28} onPress={() => { setModalVisible(false); setResult1("") }} />
+
+                <TouchableOpacity onPress={() => openDetails(result1)}>
                   <View style={{ backgroundColor: 'green', margin: 0, justifyContent: 'center', alignItems: 'center', width: width, height: 40 }}>
-                    <Text style={{ color: 'white' }}>
-                      Open
+                    <Text style={{ color: 'white'  }}>
+                      More Details >>>
                     </Text>
                   </View>
                 </TouchableOpacity>
-                <Icon style={{ height: 28 }} name='replay' size={28} onPress={() => { openCamara(); setResult(1) }} />
+                <Icon style={{ height: 28 }} name='replay' size={28} onPress={() => { launchImageLibrary(); setResult1("") }} />
               </View>
             </>
             :
@@ -276,6 +346,7 @@ const HomeScreen = ({ navigation }) => {
               <View style={{ height: "80%", width: '90%', justifyContent: 'flex-end' }}>
                 <Image
                   source={imageUri ? imageUri : 0}
+                  // source={{ uri: "file:///data/user/0/com.helloplant/cache/rn_image_picker_lib_temp_851c4a90-4222-4889-a792-989a17aa40cb.jpg" }}
                   style={{
                     height: "95%",
                     width: "100%",
@@ -283,7 +354,7 @@ const HomeScreen = ({ navigation }) => {
                   }} />
               </View>
               <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%', justifyContent: 'space-evenly', }}>
-                <Icon style={{ height: 28 }} name='dangerous' size={28} onPress={() => { setModalVisible(!modalVisible); setResult(1) }} />
+                <Icon style={{ height: 28 }} name='dangerous' size={28} onPress={() => { setModalVisible(false); setResult(1) }} />
 
                 {
                   result ?
@@ -337,7 +408,7 @@ const HomeScreen = ({ navigation }) => {
         visible={modalVisible}
         transparent={true}
         onRequestClose={() => {
-          setModalVisible(!modalVisible);
+          setModalVisible(false);
         }}
         onDismiss={() => {
           console.log('dismiss');
