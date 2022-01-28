@@ -262,7 +262,7 @@ Read more at Gardening Know How: USDA Zone Explanation
                 </View>
                 <View>
                 <Text style={style.textStyle } style={{marginHorizontal: 80}}>
-                'Maria Taimur - Primary Advisor {"\n"}
+                'Maria Taimoor - Primary Advisor {"\n"}
                 Fakhir Shaheen- Secondary Advisor {"\n"}
                 </Text>
 
@@ -272,7 +272,7 @@ Read more at Gardening Know How: USDA Zone Explanation
                 </View>
                 <View>
                 <Text style={style.textStyle } style={{marginHorizontal: 20}}>
-                When starting a hoppy of gardening people can be easily overwhelmed by the numerous amounts of different and unique flowers. Apart from that they might not even know the name of the flower or know any details regarding the growing or maintenance of that flower. This is where our app will help make the gardening life easier, our app will allow the user to easily capture a photo of the flower and get the species name and all the accompanying information in a clean user interface. Users will also be able to favorite flowers, so that they can make a list of the flowers in their garden so they can have an easy access of information for all the plants they have.
+                When starting a hobby of gardening people can be easily overwhelmed by the numerous amounts of different and unique flowers. Apart from that they might not even know the name of the flower or know any details regarding the growing or maintenance of that flower. This is where our app will help make the gardening life easier, our app will allow the user to easily capture a photo of the flower and get the species name and all the accompanying information in a clean user interface. Users will also be able to favorite flowers, so that they can make a list of the flowers in their garden so they can have an easy access of information for all the plants they have.
                 </Text>
                 </View>
 

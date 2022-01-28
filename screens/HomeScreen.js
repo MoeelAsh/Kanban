@@ -12,6 +12,7 @@ import {
   Modal,
   Alert,
   TouchableOpacity,
+  LogBox
 
 } from 'react-native';
 
@@ -21,8 +22,9 @@ import { TextInput, } from 'react-native-gesture-handler';
 import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
 import Icon from 'react-native-vector-icons/MaterialIcons';
 import COLORS from '../consts/colors';
-import plants from '../consts/plants';
+import staticImgs from '../helper/images_path';
 const width = Dimensions.get('window').width / 2 - 30;
+LogBox.ignoreLogs(['new NativeEventEmitter']);
 
 const RNFS = require("react-native-fs");
 const ip="http://40.86.119.115:8080"
@@ -34,7 +36,7 @@ const HomeScreen = ({ navigation }) => {
   const [searchText, setsearchText] = useState("");
   const [result, setResult] = useState(1);
   const [result1, setResult1] = useState(0);
-
+  const [favIconColor, setFavIconColor] = useState(false);
 
 
 
@@ -51,7 +53,7 @@ const HomeScreen = ({ navigation }) => {
   useEffect(() => {
     if (imageUri) {
       setModalVisible(true);
-      console.log("setting up and opening modal", imageUri.uri.split(",")[1])
+      // console.log("setting up and opening modal", imageUri.uri.split(",")[1])
     }
 
   }, [imageUri])
@@ -65,11 +67,25 @@ const HomeScreen = ({ navigation }) => {
   }, [searchText])
 
   useEffect(() => {
+    // const getFlowers = async () => {
+    //   await fetch(`http://40.86.119.115:8080/all_flowers`)
+    //     .then(res => res.json())
+    //     .then(res => setDataPlants(res["flowers"]))
+    //     .catch(error => console.log(error))
+    // }
+
     const getFlowers = async () => {
-      await fetch(`http://40.86.119.115:8080/all_flowers`)
-        .then(res => res.json())
-        .then(res => setDataPlants(res["flowers"]))
-        .catch(error => console.log(error))
+      await fetch ("http://40.86.119.115:8080/all_flowers")
+      .then(res => res.json())
+      .then(res => {
+        let temp = res['flowers'];
+        for ( let i = 0; i < staticImgs.length; i++ ) {
+          temp[i]["img"] = staticImgs[i];
+        }
+        temp.forEach(flower => flower['like'] = false);
+        setDataPlants(temp);
+      })
+      .catch(error => console.log(error))
     }
     getFlowers();
 
@@ -124,7 +140,7 @@ const HomeScreen = ({ navigation }) => {
                 <Icon
                   name="favorite"
                   size={18}
-                  // onPress={() => { plant.like = !plant.like; setFavIconColor(!favIconColor) }}
+                  onPress={() => { plant.like = !plant.like; setFavIconColor(!favIconColor) }}
                   color={plant.like ? COLORS.red : COLORS.black}
                 />
               </TouchableOpacity>
@@ -139,8 +155,8 @@ const HomeScreen = ({ navigation }) => {
             }}
           >
             <Image
-              source={require('../assets/plant1.png')}
-              style={{ flex: 1, resizeMode: 'contain' }}
+              source={plant["img"]}
+              style={{ flex: 1, resizeMode: 'contain', width: 200, height: 50 }}
             />
           </View>
 
@@ -462,8 +478,8 @@ const HomeScreen = ({ navigation }) => {
               paddingBottom: 50,
             }}
             numColumns={2}
-            data={dataPlants}
-            // data={dataPlants.filter(plantItem => plantItem.like).filter(plant=>plant.name.toLowerCase().includes(searchText.toLowerCase()))}
+            // data={dataPlants}
+            data={dataPlants.filter(plantItem => plantItem.like).filter(plant=>plant.flower_name.toLowerCase().includes(searchText.toLowerCase()))}
             renderItem={({ item }) => {
               return <Card plant={item} />;
             }}
@@ -477,8 +493,8 @@ const HomeScreen = ({ navigation }) => {
               paddingBottom: 50,
             }}
             numColumns={2}
-            // data={dataPlants.filter(plant=>plant.name.toLowerCase().includes(searchText.toLowerCase()))}
-            data={dataPlants}
+            data={dataPlants.filter(plant=>plant.flower_name.toLowerCase().includes(searchText.toLowerCase()))}
+            // data={dataPlants}
             renderItem={({ item }) => {
               return <Card plant={item} />;
             }}
