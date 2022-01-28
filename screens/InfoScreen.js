@@ -28,9 +28,6 @@ const InfoScreen = ({ navigation }) => {
         <View style={style.header}>
           <Icon name="arrow-back" size={28} onPress={() => navigation.goBack()} />
         </View>
-        {/* <View style={style.imageContainer}>
-          <Image source={plant.img} style={{resizeMode: 'contain', flex: 1}} />
-        </View> */}
         <View style={style.detailsContainer}>
                 <ScrollView showsVerticalScrollIndicator={false}>
           <View
@@ -198,7 +195,7 @@ const InfoScreen = ({ navigation }) => {
               </View>
               <Text style={style.textStyle}>
               The USDA plant hardiness map is created and updated every few years by the U.S. Department of Agriculture. It divides North America into eleven zones by minimum average annual temperatures. The lower the number is, the lower the temperatures in that zone. Each zone represents ten degrees of temperature difference. Each zone is also divided into “a” and “b” segments. These represent five degrees of temperature difference. For example, zone 4 represents minimum temperatures between -30 to -20 degrees F. (-34 to -29 C.). The a and b subdivisions represent -30 to -25 degrees F. (-34 to -32 C.) and -25 to -20 degrees F. (-32 to -29 C.). Hardiness refers to how well a plant will survive cold temperatures. Where the USDA zones fall short; however, is that they don’t account for other factors. These include freeze dates, freeze-thaw cycles, the effects of snow cover, precipitation, and elevation.
-Read more at Gardening Know How: USDA Zone Explanation
+              Read more at Gardening Know How: USDA Zone Explanation
                 </Text>
             </View>
   

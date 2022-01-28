@@ -103,21 +103,25 @@ const DetailsScreen = ({navigation, route}) => {
               </Text>
             </View>
           </View>
-
-          <View style={style.IconStyle}>
-            <View
-              style={{
-                flexDirection: 'row',
-                alignItems: 'center',
-              }}>
-              <View style={style.borderBtn}>
-                <Text style={style.borderBtnText}><Icon name='filter-alt' size={28} /></Text>
+          
+          { 
+            plant.soil_ph ? (
+              <View style={style.IconStyle}>
+                <View
+                  style={{
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                  }}>
+                  <View style={style.borderBtn}>
+                    <Text style={style.borderBtnText}><Icon name='filter-alt' size={28} /></Text>
+                  </View>
+                  <Text style={style.myText}>
+                  {plant.soil_ph ? plant.soil_ph : "N/A"}
+                  </Text>
+                </View>
               </View>
-              <Text style={style.myText}>
-              {plant.soil_ph ? plant.soil_ph : "N/A"}
-              </Text>
-            </View>
-          </View>
+            ) :  (<></>)
+          }
 
           <View style={style.IconStyle}>
             <View

@@ -133,6 +133,7 @@ const HomeScreen = ({ navigation }) => {
                 backgroundColor: plant.like
                   ? 'rgba(245, 42, 42,0.2)'
                   : 'rgba(0,0,0,0.2) ',
+                marginBottom: 5
               }}>
               <TouchableOpacity
                 onPress={() => { plant.like = !plant.like; settoggle(!toggle) }}
@@ -147,31 +148,35 @@ const HomeScreen = ({ navigation }) => {
 
             </View>
           </View>
+          
+          <View style={{ width: '100%', alignItems: 'center' }} >
+            <View
+              style={{
+                height: 120,
+                width: 120,
+                // alignItems: 'flex-end',
+                // borderWidth: 1
+              }}
+            >
+              <Image
+                source={plant["img"]}
+                style={{ flex: 1, resizeMode: 'cover', width: 120, height: 120 }}
+              />
+            </View>
 
-          <View
-            style={{
-              height: 100,
-              alignItems: 'center',
-            }}
-          >
-            <Image
-              source={plant["img"]}
-              style={{ flex: 1, resizeMode: 'contain', width: 200, height: 50 }}
-            />
-          </View>
-
-          <Text style={{ fontWeight: 'bold', fontSize: 17, marginTop: 10 }}>
-            {plant.flower_name}
-          </Text>
-          <View
-            style={{
-              flexDirection: 'row',
-              justifyContent: 'space-between',
-              marginTop: 5,
-            }}>
-            <Text style={{ fontSize: 19, fontWeight: 'bold' }}>
-              {plant.botanical_name}
+            <Text style={{ fontWeight: 'bold', fontSize: 17, marginTop: 10 }}>
+              {plant.flower_name}
             </Text>
+            <View
+              style={{
+                flexDirection: 'row',
+                justifyContent: 'space-between',
+                marginTop: 5,
+              }}>
+              <Text style={{ fontSize: 19, fontWeight: 'bold' }}>
+                {plant.botanical_name}
+              </Text>
+            </View>
           </View>
         </View>
       </TouchableOpacity>
@@ -354,7 +359,7 @@ const HomeScreen = ({ navigation }) => {
                 <TouchableOpacity onPress={() => openDetails(result1)}>
                   <View style={{ backgroundColor: 'green', margin: 0, justifyContent: 'center', alignItems: 'center', width: width, height: 40 }}>
                     <Text style={{ color: 'white'  }}>
-                      More Details >>>
+                      More Details
                     </Text>
                   </View>
                 </TouchableOpacity>
