@@ -130,9 +130,15 @@ const HomeScreen = ({ navigation }) => {
                 borderRadius: 20,
                 justifyContent: 'center',
                 alignItems: 'center',
+                position: 'absolute',
+                zIndex:1,
+                top: 8,
+                right: 8,
                 backgroundColor: plant.like
-                  ? 'rgba(245, 42, 42,0.2)'
-                  : 'rgba(0,0,0,0.2) ',
+                  ? 'rgba(245, 42, 42,0.6)'
+                  //? 'rgba(245, 42, 42,0.2)'
+                  //: 'rgba(0,0,0,0.2) ',
+                  : 'rgba(255,255,255,0.6) ',
                 marginBottom: 5
               }}>
               <TouchableOpacity
@@ -149,18 +155,19 @@ const HomeScreen = ({ navigation }) => {
             </View>
           </View>
           
-          <View style={{ width: '100%', alignItems: 'center' }} >
+          <View style={{ width: '100%'/*, alignItems: 'center' */}} >
             <View
               style={{
-                height: 120,
-                width: 120,
+                height: 140,
+                width: 140,
+                //position: 'absolute',
                 // alignItems: 'flex-end',
                 // borderWidth: 1
               }}
             >
               <Image
                 source={plant["img"]}
-                style={{ flex: 1, resizeMode: 'cover', width: 120, height: 120 }}
+                style={{ flex: 1, resizeMode: 'cover', width: 140, height: 140, borderRadius: 7}}
               />
             </View>
 

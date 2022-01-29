@@ -24,12 +24,25 @@ const DetailsScreen = ({navigation, route}) => {
         backgroundColor: COLORS.white,
       }}>
       <View style={style.header}>
-        <Icon name="arrow-back" size={28} onPress={() => navigation.goBack()} />
+        <Icon name="arrow-back" size={28} onPress={() => navigation.goBack()} 
+        /*style={{ position: 'absolute',
+        top: 20,
+        left: 15,
+        zIndex: 1,
+        color: 'rgb(0, 0, 0)'}}
+         *//>
         <View
               style={{
                 width: 30,
                 height: 30,
                 borderRadius: 20,
+                marginBottom: 5,
+                /*
+                position: 'absolute',
+                top: 20,
+                right: 15,
+                zIndex: 1,
+                */
                 justifyContent: 'center',
                 alignItems: 'center',
                 backgroundColor: plant.like
@@ -48,7 +61,7 @@ const DetailsScreen = ({navigation, route}) => {
             </View>
       </View>
       <View style={style.imageContainer}>
-        <Image source={plant.img} style={{resizeMode: 'contain', flex: 1}} />
+        <Image source={plant.img} style={{resizeMode: 'contain', flex: 1, borderRadius: 10}} />
       </View>
       <View style={style.detailsContainer}>
               <ScrollView showsVerticalScrollIndicator={false}>
