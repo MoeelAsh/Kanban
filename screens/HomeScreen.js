@@ -1,4 +1,12 @@
 import React, { useState, useEffect } from 'react';
+import SweetAlert from 'react-native-sweet-alert';
+import { TextInput, } from 'react-native-gesture-handler';
+import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
+import Icon from 'react-native-vector-icons/MaterialIcons';
+import COLORS from '../consts/colors';
+import staticImgs from '../helper/images_path';
+import AsyncStorage from '@react-native-async-storage/async-storage';
+import Spinner from 'react-native-loading-spinner-overlay';
 
 import {
   View,
@@ -17,12 +25,7 @@ import {
 } from 'react-native';
 
 
-import SweetAlert from 'react-native-sweet-alert';
-import { TextInput, } from 'react-native-gesture-handler';
-import { launchCamera, launchImageLibrary } from 'react-native-image-picker';
-import Icon from 'react-native-vector-icons/MaterialIcons';
-import COLORS from '../consts/colors';
-import staticImgs from '../helper/images_path';
+
 const width = Dimensions.get('window').width / 2 - 30;
 LogBox.ignoreLogs(['new NativeEventEmitter']);
 
@@ -41,8 +44,10 @@ const HomeScreen = ({ navigation }) => {
 
 
   const [dataPlants, setDataPlants] = useState([]);
+  const [storageFlowers, setStorageFlowers] = useState([]);
   const [modalVisible, setModalVisible] = useState(false);
   const [flag, setFlag] = useState(0);
+  const [spinnerState, setSpinnerState] = useState(false);
 
 
   const categories = ['ALL FLOWERS', 'FAVORITES', <Icon name='location-pin' size={24} />];
@@ -66,31 +71,74 @@ const HomeScreen = ({ navigation }) => {
     console.log(searchText)
   }, [searchText])
 
-  useEffect(() => {
-    // const getFlowers = async () => {
-    //   await fetch(`http://40.86.119.115:8080/all_flowers`)
-    //     .then(res => res.json())
-    //     .then(res => setDataPlants(res["flowers"]))
-    //     .catch(error => console.log(error))
-    // }
+  const storeData = async (value) => {
+    try {
+      await AsyncStorage.setItem('@flowers', JSON.stringify(value))
+    } catch (e) {
+      console.log("Error storing data: ", e);
+    }
+  }
 
+  
+  const getData = async () => {
+    try {
+      const value = await AsyncStorage.getItem('@flowers')
+      if(value !== null && JSON.parse(value).length > 0) {
+        return JSON.parse(value);
+      } else return [];
+    } catch(e) {
+      console.log("Error getting data: ", e);
+    }
+  }
+
+
+  useEffect(() => {
+    setSpinnerState(!spinnerState);
+    // AsyncStorage.removeItem('@flowers')
     const getFlowers = async () => {
       await fetch ("http://40.86.119.115:8080/all_flowers")
       .then(res => res.json())
-      .then(res => {
+      .then(async res => {
         let temp = res['flowers'];
-        for ( let i = 0; i < staticImgs.length; i++ ) {
-          temp[i]["img"] = staticImgs[i];
+        let checkStoredFlowerData = await getData();
+        if ( checkStoredFlowerData.length > 0 ) {
+          let updatedFlowerArray = [];
+          temp.forEach(flower => {
+            const flowerObj = checkStoredFlowerData.filter(item => item.flower_name === flower.flower_name);
+            if ( flowerObj.length === 1 ) updatedFlowerArray.push({ ...flower, like: flowerObj[0]["like"] });
+            else console.log("No such flower obj found in storge", flower);
+          })
+          for ( let i = 0; i < staticImgs.length; i++ ) {
+            updatedFlowerArray[i]["img"] = staticImgs[i];
+          }
+          setDataPlants(updatedFlowerArray);
+          setStorageFlowers(updatedFlowerArray);
+          setSpinnerState(false);
+        } else {
+          for ( let i = 0; i < staticImgs.length; i++ ) {
+            temp[i]["img"] = staticImgs[i];
+          }
+          temp.forEach(flower => flower['like'] = false);
+          setDataPlants(temp);
+          setStorageFlowers(temp);
+          setSpinnerState(false);
         }
-        temp.forEach(flower => flower['like'] = false);
-        setDataPlants(temp);
       })
       .catch(error => console.log(error))
     }
     getFlowers();
 
-    return () => setDataPlants([])
+    return async () => { setDataPlants([]);  }
   }, [])
+
+  const changeFlowerArray = async ( plantObj ) => {
+    if ( dataPlants.length > 0 && storageFlowers.length > 0 ) {
+      let index = storageFlowers.findIndex(item => item.flower_name === plantObj.flower_name);
+      storageFlowers.splice(index, 1);
+      storageFlowers.splice(index, 0, plantObj);
+      await storeData(storageFlowers);
+    }
+  }
 
   const CategoryList = () => {
     return (
@@ -147,7 +195,7 @@ const HomeScreen = ({ navigation }) => {
                 <Icon
                   name="favorite"
                   size={18}
-                  onPress={() => { plant.like = !plant.like; setFavIconColor(!favIconColor) }}
+                  onPress={() => { plant.like = !plant.like; setFavIconColor(!favIconColor); changeFlowerArray(plant) }}
                   color={plant.like ? COLORS.red : COLORS.black}
                 />
               </TouchableOpacity>
@@ -514,6 +562,13 @@ const HomeScreen = ({ navigation }) => {
         )
 
       }
+      { spinnerState && (
+        <Spinner
+          visible={spinnerState}
+          textContent={'Loading...'}
+          textStyle={style.spinnerTextStyle}
+        />
+      ) }
     </SafeAreaView>
   );
 };
@@ -569,6 +624,9 @@ const style = StyleSheet.create({
     backgroundColor: COLORS.green,
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  spinnerTextStyle: {
+    color: '#FFF'
   },
 });
 
