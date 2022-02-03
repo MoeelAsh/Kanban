@@ -273,6 +273,42 @@ const InfoScreen = ({ navigation }) => {
                 </Text>
                 </View>
 
+                <View
+                style={{
+                  marginLeft: 20,
+                  marginTop: 20,
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: 20,
+            }}>
+
+            <Text style={{fontSize: 22, fontWeight: 'bold'}}>Poster</Text>
+
+          </View>
+
+          <View
+                style={{
+                  marginLeft: 20,
+                  marginTop: 20,
+                  flexDirection: 'row',
+                  justifyContent: 'space-between',
+                  alignItems: 'center',
+                  marginBottom: 20,
+            }}>
+          
+          <Image
+                      source={require("../assets/poster.png")}
+                      style={{
+                        width: 300,
+                        height: 400,
+                      }}
+                    >
+                    </Image>
+            </View>
+
+
+
           </ScrollView>
         </View>
       </SafeAreaView>

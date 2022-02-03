@@ -238,11 +238,13 @@ const HomeScreen = ({ navigation }) => {
             </View>
           </View>
 
-          <View style={{ width: '100%'/*, alignItems: 'center' */ }} >
+          <View style={{ height:'100%',width: '100%'/*, alignItems: 'center' */ }} >
             <View
               style={{
-                height: 140,
-                width: 140,
+                //height: 140,
+                //width: 140,
+                height: '60%',
+                width: '60%',
                 //position: 'absolute',
                 // alignItems: 'flex-end',
                 // borderWidth: 1
@@ -250,7 +252,7 @@ const HomeScreen = ({ navigation }) => {
             >
               <Image
                 source={plant["img"]}
-                style={{ flex: 1, resizeMode: 'cover', width: 140, height: 140, borderRadius: 7 }}
+                style={{ flex: 1, resizeMode: 'cover', width: '167%', height: '100%', borderRadius: 7 }}
               />
             </View>
 
