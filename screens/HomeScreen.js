@@ -7,7 +7,8 @@ import COLORS from '../consts/colors';
 import staticImgs from '../helper/images_path';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import Spinner from 'react-native-loading-spinner-overlay';
-
+import Geolocation from '@react-native-community/geolocation'
+// import Geocoder from 'react-native-geocoding';
 import {
   View,
   SafeAreaView,
@@ -30,7 +31,7 @@ const width = Dimensions.get('window').width / 2 - 30;
 LogBox.ignoreLogs(['new NativeEventEmitter']);
 
 const RNFS = require("react-native-fs");
-const ip="http://40.86.119.115:8080"
+const ip = "http://40.86.119.115:8080"
 
 
 const HomeScreen = ({ navigation }) => {
@@ -40,6 +41,8 @@ const HomeScreen = ({ navigation }) => {
   const [result, setResult] = useState(1);
   const [result1, setResult1] = useState(0);
   const [favIconColor, setFavIconColor] = useState(false);
+  const [loc, setloc] = useState([0, 0]);
+  const [city, setcity] = useState("");
 
 
 
@@ -54,6 +57,11 @@ const HomeScreen = ({ navigation }) => {
 
 
   const [toggle, settoggle] = useState(0);
+
+  useEffect(() => {
+    getLoc();
+  }, []);
+
 
   useEffect(() => {
     if (imageUri) {
@@ -79,60 +87,87 @@ const HomeScreen = ({ navigation }) => {
     }
   }
 
-  
+
   const getData = async () => {
     try {
       const value = await AsyncStorage.getItem('@flowers')
-      if(value !== null && JSON.parse(value).length > 0) {
+      if (value !== null && JSON.parse(value).length > 0) {
         return JSON.parse(value);
       } else return [];
-    } catch(e) {
+    } catch (e) {
       console.log("Error getting data: ", e);
     }
   }
+
+  const getLoc = () => {
+    Geolocation.getCurrentPosition(
+      (position) => {
+        console.log(position)
+        setloc([position.coords.latitude, position.coords.longitude])
+      },
+      (error) => {
+        console.log(error)
+      },
+      { enableHighAccuracy: true, timeout: 15000, maximumAge: 10000 }
+    );
+  }
+
+  useEffect(() => {
+    if (loc[0] != 0 && loc[1] != 0) {
+      // console.log(`https://us1.locationiq.com/v1/reverse.php?key=pk.e7b21944426abbf3916d6c91f77c96b2&lat=${loc[0]}&lon=${loc[1]}&format=json`)
+      fetch(`https://us1.locationiq.com/v1/reverse.php?key=pk.e7b21944426abbf3916d6c91f77c96b2&lat=${loc[0]}&lon=${loc[1]}&format=json`)
+        .then(res => res.json())
+        .then(res => {
+          // console.log(res.address)
+          setcity(res.address.state)
+        })
+    }
+  }, [loc]);
+
+
 
 
   useEffect(() => {
     setSpinnerState(!spinnerState);
     // AsyncStorage.removeItem('@flowers')
     const getFlowers = async () => {
-      await fetch ("http://40.86.119.115:8080/all_flowers")
-      .then(res => res.json())
-      .then(async res => {
-        let temp = res['flowers'];
-        let checkStoredFlowerData = await getData();
-        if ( checkStoredFlowerData.length > 0 ) {
-          let updatedFlowerArray = [];
-          temp.forEach(flower => {
-            const flowerObj = checkStoredFlowerData.filter(item => item.flower_name === flower.flower_name);
-            if ( flowerObj.length === 1 ) updatedFlowerArray.push({ ...flower, like: flowerObj[0]["like"] });
-            else console.log("No such flower obj found in storge", flower);
-          })
-          for ( let i = 0; i < staticImgs.length; i++ ) {
-            updatedFlowerArray[i]["img"] = staticImgs[i];
+      await fetch("http://40.86.119.115:8080/all_flowers")
+        .then(res => res.json())
+        .then(async res => {
+          let temp = res['flowers'];
+          let checkStoredFlowerData = await getData();
+          if (checkStoredFlowerData.length > 0) {
+            let updatedFlowerArray = [];
+            temp.forEach(flower => {
+              const flowerObj = checkStoredFlowerData.filter(item => item.flower_name === flower.flower_name);
+              if (flowerObj.length === 1) updatedFlowerArray.push({ ...flower, like: flowerObj[0]["like"] });
+              else console.log("No such flower obj found in storge", flower);
+            })
+            for (let i = 0; i < staticImgs.length; i++) {
+              updatedFlowerArray[i]["img"] = staticImgs[i];
+            }
+            setDataPlants(updatedFlowerArray);
+            setStorageFlowers(updatedFlowerArray);
+            setSpinnerState(false);
+          } else {
+            for (let i = 0; i < staticImgs.length; i++) {
+              temp[i]["img"] = staticImgs[i];
+            }
+            temp.forEach(flower => flower['like'] = false);
+            setDataPlants(temp);
+            setStorageFlowers(temp);
+            setSpinnerState(false);
           }
-          setDataPlants(updatedFlowerArray);
-          setStorageFlowers(updatedFlowerArray);
-          setSpinnerState(false);
-        } else {
-          for ( let i = 0; i < staticImgs.length; i++ ) {
-            temp[i]["img"] = staticImgs[i];
-          }
-          temp.forEach(flower => flower['like'] = false);
-          setDataPlants(temp);
-          setStorageFlowers(temp);
-          setSpinnerState(false);
-        }
-      })
-      .catch(error => console.log(error))
+        })
+        .catch(error => console.log(error))
     }
     getFlowers();
 
-    return async () => { setDataPlants([]);  }
+    return async () => { setDataPlants([]); }
   }, [])
 
-  const changeFlowerArray = async ( plantObj ) => {
-    if ( dataPlants.length > 0 && storageFlowers.length > 0 ) {
+  const changeFlowerArray = async (plantObj) => {
+    if (dataPlants.length > 0 && storageFlowers.length > 0) {
       let index = storageFlowers.findIndex(item => item.flower_name === plantObj.flower_name);
       storageFlowers.splice(index, 1);
       storageFlowers.splice(index, 0, plantObj);
@@ -179,7 +214,7 @@ const HomeScreen = ({ navigation }) => {
                 justifyContent: 'center',
                 alignItems: 'center',
                 position: 'absolute',
-                zIndex:1,
+                zIndex: 1,
                 top: 8,
                 right: 8,
                 backgroundColor: plant.like
@@ -202,8 +237,8 @@ const HomeScreen = ({ navigation }) => {
 
             </View>
           </View>
-          
-          <View style={{ width: '100%'/*, alignItems: 'center' */}} >
+
+          <View style={{ width: '100%'/*, alignItems: 'center' */ }} >
             <View
               style={{
                 height: 140,
@@ -215,7 +250,7 @@ const HomeScreen = ({ navigation }) => {
             >
               <Image
                 source={plant["img"]}
-                style={{ flex: 1, resizeMode: 'cover', width: 140, height: 140, borderRadius: 7}}
+                style={{ flex: 1, resizeMode: 'cover', width: 140, height: 140, borderRadius: 7 }}
               />
             </View>
 
@@ -366,25 +401,22 @@ const HomeScreen = ({ navigation }) => {
           cancellable: true
         },
           callback => console.log('callback'));
-        
+
       })
 
   }
 
-  const openDetails=(prop)=>{
+  const openDetails = (prop) => {
     setModalVisible(false)
     setResult(1);
     setResult1("")
-    var dat=prop
-    if(prop.toLowerCase()==="oxeye daisy"){
-      dat="daisy"      
-    }
-    const data=dataPlants.filter(flower=>flower.flower_name.toLowerCase()===dat.toLowerCase())
+    var dat = prop
+    const data = dataPlants.filter(flower => flower.flower_name.toLowerCase() === dat.toLowerCase())
     console.log(data);
-    if(data.length>0){
-      navigation.navigate("Details",data[0])
+    if (data.length > 0) {
+      navigation.navigate("Details", data[0])
     }
-    else{
+    else {
       console.log("smol");
     }
 
@@ -407,18 +439,18 @@ const HomeScreen = ({ navigation }) => {
 
                   }} />
               </View>
-              <Text style={{fontSize:16,color:"black"}}>{result1}</Text>
+              <Text style={{ fontSize: 16, color: "black" }}>{result1}</Text>
               <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%', justifyContent: 'space-evenly', }}>
-                <Icon style={{ height: 28 }} name='dangerous' size={28} onPress={() => { setModalVisible(false); setResult1("");setResult(1) }} />
+                <Icon style={{ height: 28 }} name='dangerous' size={28} onPress={() => { setModalVisible(false); setResult1(""); setResult(1) }} />
 
                 <TouchableOpacity onPress={() => openDetails(result1)}>
                   <View style={{ backgroundColor: 'green', margin: 0, justifyContent: 'center', alignItems: 'center', width: width, height: 40 }}>
-                    <Text style={{ color: 'white'  }}>
+                    <Text style={{ color: 'white' }}>
                       More Details
                     </Text>
                   </View>
                 </TouchableOpacity>
-                <Icon style={{ height: 28 }} name='replay' size={28} onPress={() => { flag?launchImageLibrary():launchCamera(); setResult("1");setimageUri("") }} />
+                <Icon style={{ height: 28 }} name='replay' size={28} onPress={() => { flag ? launchImageLibrary() : launchCamera(); setResult("1"); setimageUri("") }} />
               </View>
             </>
             :
@@ -434,7 +466,7 @@ const HomeScreen = ({ navigation }) => {
                   }} />
               </View>
               <View style={{ flexDirection: 'row', alignItems: 'center', width: '100%', justifyContent: 'space-evenly', }}>
-                <Icon style={{ height: 28 }} name='dangerous' size={28} onPress={() => { setModalVisible(false); setResult(1);setResult1("") }} />
+                <Icon style={{ height: 28 }} name='dangerous' size={28} onPress={() => { setModalVisible(false); setResult(1); setResult1("") }} />
 
                 {
                   result ?
@@ -457,7 +489,7 @@ const HomeScreen = ({ navigation }) => {
                     </Image>
 
                 }
-                <Icon style={{ height: 28 }} name='replay' size={28} onPress={() => { flag?launchImageLibrary():launchCamera(); setResult(1) }} />
+                <Icon style={{ height: 28 }} name='replay' size={28} onPress={() => { flag ? launchImageLibrary() : launchCamera(); setResult(1) }} />
               </View>
             </>
           }
@@ -466,6 +498,91 @@ const HomeScreen = ({ navigation }) => {
 
     )
   }
+
+  const switchScreens = (index) => {
+    switch (index) {
+      case 0:
+        return (
+
+          <FlatList
+            columnWrapperStyle={{ justifyContent: 'space-between' }}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{
+              marginTop: 10,
+              paddingBottom: 50,
+            }}
+            numColumns={2}
+            data={dataPlants.filter(plant => plant.flower_name.toLowerCase().includes(searchText.toLowerCase()))}
+            // data={dataPlants}
+            renderItem={({ item }) => {
+              return <Card plant={item} />;
+            }}
+          />
+        )
+      case 1:
+        return (
+          <FlatList
+            columnWrapperStyle={{ justifyContent: 'space-between' }}
+            showsVerticalScrollIndicator={false}
+            contentContainerStyle={{
+              marginTop: 10,
+              paddingBottom: 50,
+            }}
+            numColumns={2}
+            // data={dataPlants}
+            data={dataPlants.filter(plantItem => plantItem.like).filter(plant => plant.flower_name.toLowerCase().includes(searchText.toLowerCase()))}
+            renderItem={({ item }) => {
+              return <Card plant={item} />;
+            }}
+          />
+        )
+      case 2:
+        return (
+          <View>
+
+            <Text>{city}</Text>
+
+          </View>
+        )
+
+
+    }
+  }
+
+
+  //   (
+  //     <FlatList
+  //       columnWrapperStyle={{ justifyContent: 'space-between' }}
+  //       showsVerticalScrollIndicator={false}
+  //       contentContainerStyle={{
+  //         marginTop: 10,
+  //         paddingBottom: 50,
+  //       }}
+  //       numColumns={2}
+  //       // data={dataPlants}
+  //       data={dataPlants.filter(plantItem => plantItem.like).filter(plant => plant.flower_name.toLowerCase().includes(searchText.toLowerCase()))}
+  //       renderItem={({ item }) => {
+  //         return <Card plant={item} />;
+  //       }}
+  //     />
+  //   )
+  //   :
+  // (
+  //   <FlatList
+  //     columnWrapperStyle={{ justifyContent: 'space-between' }}
+  //     showsVerticalScrollIndicator={false}
+  //     contentContainerStyle={{
+  //       marginTop: 10,
+  //       paddingBottom: 50,
+  //     }}
+  //     numColumns={2}
+  //     data={dataPlants.filter(plant => plant.flower_name.toLowerCase().includes(searchText.toLowerCase()))}
+  //     // data={dataPlants}
+  //     renderItem={({ item }) => {
+  //       return <Card plant={item} />;
+  //     }}
+  //   />
+  // )
 
 
   return (
@@ -529,46 +646,19 @@ const HomeScreen = ({ navigation }) => {
       </View>
       <CategoryList />
       {
-        catergoryIndex && dataPlants.length > 0 ? (
-          <FlatList
-            columnWrapperStyle={{ justifyContent: 'space-between' }}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{
-              marginTop: 10,
-              paddingBottom: 50,
-            }}
-            numColumns={2}
-            // data={dataPlants}
-            data={dataPlants.filter(plantItem => plantItem.like).filter(plant=>plant.flower_name.toLowerCase().includes(searchText.toLowerCase()))}
-            renderItem={({ item }) => {
-              return <Card plant={item} />;
-            }}
-          />
-        ) : (
-          <FlatList
-            columnWrapperStyle={{ justifyContent: 'space-between' }}
-            showsVerticalScrollIndicator={false}
-            contentContainerStyle={{
-              marginTop: 10,
-              paddingBottom: 50,
-            }}
-            numColumns={2}
-            data={dataPlants.filter(plant=>plant.flower_name.toLowerCase().includes(searchText.toLowerCase()))}
-            // data={dataPlants}
-            renderItem={({ item }) => {
-              return <Card plant={item} />;
-            }}
-          />
-        )
+        dataPlants.length > 0 ?
+          switchScreens(catergoryIndex) :
+          null
+
 
       }
-      { spinnerState && (
+      {spinnerState && (
         <Spinner
           visible={spinnerState}
           textContent={'Loading...'}
           textStyle={style.spinnerTextStyle}
         />
-      ) }
+      )}
     </SafeAreaView>
   );
 };
